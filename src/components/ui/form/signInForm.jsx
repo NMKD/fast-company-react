@@ -2,8 +2,12 @@ import React, { useState, useEffect } from "react";
 import TextField from "./fields/textField";
 import CheckBoxField from "./fields/checkBoxField";
 import { yupValidationSingIn } from "../../../utils/validationSchema";
+import { useAuthContext } from "../../../hooks/useAuth";
+import { useHistory } from "react-router-dom";
 
 const SingInForm = () => {
+    const history = useHistory();
+    const { signIn } = useAuthContext();
     const [data, setData] = useState({
         email: "",
         password: "",
@@ -13,9 +17,10 @@ const SingInForm = () => {
     const [errors, setErrors] = useState({});
     const isValid = Object.keys(errors).length !== 0;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(data);
+        await signIn(data);
+        history.push("/");
     };
 
     const handleChangeData = (target) => {

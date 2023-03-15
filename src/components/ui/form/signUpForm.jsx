@@ -9,8 +9,10 @@ import CheckBoxField from "./fields/checkBoxField";
 import { useQualitiesContext } from "../../../hooks/useQualities";
 import { useProfessionContext } from "../../../hooks/useProfession";
 import { useAuthContext } from "../../../hooks/useAuth";
+import { useHistory } from "react-router-dom";
 
 const SignUpForm = () => {
+    const history = useHistory();
     const { signUp } = useAuthContext();
     const [data, setData] = useState({
         email: "",
@@ -45,6 +47,7 @@ const SignUpForm = () => {
                 item.name.toLowerCase().includes(data.profession.toLowerCase())
             )[0]._id
         });
+        history.push("/");
     };
 
     const handleChangeData = (target) => {
