@@ -17,11 +17,14 @@ const AuthProvider = ({ children }) => {
     const [stateUserCurrent, setStateCurrentUser] = useState();
 
     async function createUser(data) {
-        const content = await userService.create(data);
-        if (typeof content !== "string") {
-            setStateCurrentUser(content.data.content);
+        try {
+            const res = await userService.create(data);
+            setStateCurrentUser(res.data.content);
+            toast.success("Пользователь успешно создан");
+        } catch (e) {
+            console.error(e);
+            toast.error("Ошибка при создании нового пользователя");
         }
-        console.log(stateUserCurrent);
     }
     async function signUp({ email, password, ...rest }) {
         const url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_KEY}`;
@@ -32,10 +35,15 @@ const AuthProvider = ({ children }) => {
                 returnSecureToken: true
             });
             setToken(data);
-            await createUser({ _id: data.localId, email, ...rest });
+            await createUser({ _id: data.localId, email, password, ...rest });
         } catch (e) {
             console.error(e);
-            toast.error(e.message);
+            const err = e.response.data.error;
+            if (err.code === 400 && err.message === "EMAIL_EXISTS") {
+                toast.error("Пользователь с таким email уже существет");
+            } else {
+                toast.error(e.message);
+            }
         }
     }
 

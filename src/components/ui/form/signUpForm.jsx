@@ -36,9 +36,9 @@ const SignUpForm = () => {
         { name: "Other", value: "other" }
     ];
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        signUp({
+        await signUp({
             ...data,
             qualities: data.qualities.map((item) => item.value),
             profession: professions.filter((item) =>
