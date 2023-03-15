@@ -4,6 +4,7 @@ import axios from "axios";
 // import userService from "../service/user.service";
 import { toast } from "react-toastify";
 import userService from "../service/user.service";
+import { setToken } from "../service/localstorage.service";
 
 const AuthContext = React.createContext();
 const http = axios.create();
@@ -12,18 +13,9 @@ export const useAuthContext = () => {
     return useContext(AuthContext);
 };
 
-const TOKEN_KYE = "jwt-token";
-const REFRESH_KEY = "jwt-refresh-token";
-const EXPIRES_KEY = "jwt-expires";
-
 const AuthProvider = ({ children }) => {
     const [stateUserCurrent, setStateCurrentUser] = useState();
-    function setToken({ expiresIn = 3600, idToken, refreshToken }) {
-        const expiresDate = new Date().getTime() + expiresIn * 1000;
-        localStorage.setItem(TOKEN_KYE, idToken);
-        localStorage.setItem(REFRESH_KEY, refreshToken);
-        localStorage.setItem(EXPIRES_KEY, expiresDate);
-    }
+
     async function createUser(data) {
         const content = await userService.create(data);
         if (typeof content !== "string") {
