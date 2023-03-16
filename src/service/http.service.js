@@ -2,21 +2,47 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 import configJson from "../config.json";
+import { httpAuth } from "../hooks/useAuth";
+import localStorageService from "./localstorage.service";
+
+const expiresDate = localStorageService.getExpDate();
+const refreshToken = localStorageService.getRefreshToken();
+const accessToken = localStorageService.getAccessToken();
 
 axios.defaults.baseURL = configJson.isFarebase.apiEndPointFirebase;
 
 axios.interceptors.request.use(
-    function (config) {
+    async function (config) {
         // Do something before request is sent
         if (configJson?.isFarebase.db) {
             config.url =
                 (/\/$/gi.test(config.url)
                     ? config.url.slice(0, -1)
                     : config.url) + ".json";
+
+            if (refreshToken !== null && expiresDate < Date.now()) {
+                const { data } = await httpAuth.post("token", {
+                    grant_type: "refresh_token",
+                    refresh_token: refreshToken
+                });
+                localStorageService.setToken({
+                    expiresIn: data.expires_in,
+                    idToken: data.id_token,
+                    localId: data.user_id,
+                    refreshToken: data.refresh_token
+                });
+            }
+            if (accessToken) {
+                config.params = {
+                    ...config.params,
+                    auth: accessToken
+                };
+            }
         }
 
         return config;
     },
+
     function (error) {
         // Do something with request error
         return Promise.reject(error);
@@ -24,11 +50,11 @@ axios.interceptors.request.use(
 );
 
 function transformData(data) {
-    return data
+    return data && !data._id
         ? Object.keys(data).map((key) => ({
               ...data[key]
           }))
-        : [];
+        : data;
 }
 
 axios.interceptors.response.use(

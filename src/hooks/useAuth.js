@@ -1,54 +1,116 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
-// import userService from "../service/user.service";
 import { toast } from "react-toastify";
 import userService from "../service/user.service";
+import localStorageService, { setToken } from "../service/localstorage.service";
+import { randomInt } from "../utils/randomInt";
 
 const AuthContext = React.createContext();
-const http = axios.create();
+
+export const httpAuth = axios.create({
+    baseURL: "https://identitytoolkit.googleapis.com/v1/",
+    params: {
+        key: process.env.REACT_APP_FIREBASE_KEY
+    }
+});
 
 export const useAuthContext = () => {
     return useContext(AuthContext);
 };
 
-const TOKEN_KYE = "jwt-token";
-const REFRESH_KEY = "jwt-refresh-token";
-const EXPIRES_KEY = "jwt-expires";
-
 const AuthProvider = ({ children }) => {
     const [stateUserCurrent, setStateCurrentUser] = useState();
-    function setToken({ expiresIn = 3600, idToken, refreshToken }) {
-        const expiresDate = new Date().getTime() + expiresIn * 1000;
-        localStorage.setItem(TOKEN_KYE, idToken);
-        localStorage.setItem(REFRESH_KEY, refreshToken);
-        localStorage.setItem(EXPIRES_KEY, expiresDate);
-    }
+
     async function createUser(data) {
-        const content = await userService.create(data);
-        if (typeof content !== "string") {
-            setStateCurrentUser(content.data.content);
-        }
-        console.log(stateUserCurrent);
-    }
-    async function signUp({ email, password, ...rest }) {
-        const url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_KEY}`;
         try {
-            const { data } = await http.post(url, {
+            const res = await userService.create(data);
+            setStateCurrentUser(res.data.content);
+            toast.success("Пользователь успешно создан");
+        } catch (e) {
+            console.error(e);
+            toast.error("Ошибка при создании нового пользователя");
+        }
+    }
+
+    async function getUserData() {
+        try {
+            const { data } = await userService.getAuth(
+                localStorageService.getUserId()
+            );
+            setStateCurrentUser(data.content);
+        } catch (e) {
+            if (
+                e.response.status === 401 &&
+                e.response.statusText === "Unauthorized"
+            ) {
+                toast.error("Неавторизованный пользователь");
+            }
+            console.error(e.response);
+        }
+    }
+
+    async function signUp({ email, password, ...rest }) {
+        try {
+            const { data } = await httpAuth.post(`accounts:signUp`, {
                 email,
                 password,
                 returnSecureToken: true
             });
             setToken(data);
-            await createUser({ _id: data.localId, email, ...rest });
+            await createUser({
+                _id: data.localId,
+                email,
+                password,
+                completedMeetings: randomInt(0, 100),
+                rate: randomInt(1, 5),
+                ...rest
+            });
         } catch (e) {
-            console.error(e);
-            toast.error(e.message);
+            console.error(e.response);
+            const err = e.response.data.error;
+            if (err.code === 400 && err.message === "EMAIL_EXISTS") {
+                toast.error("Пользователь с таким email уже существет");
+            } else {
+                toast.error(e.message);
+            }
         }
     }
 
+    async function signIn({ email, password }) {
+        try {
+            const { data } = await httpAuth.post(
+                `accounts:signInWithPassword`,
+                {
+                    email,
+                    password,
+                    returnSecureToken: true
+                }
+            );
+            setToken(data);
+            getUserData();
+            toast.success("Добро пожаловать в сервис");
+        } catch (e) {
+            console.error(e.response);
+            const err = e.response.data.error;
+            if (err.code === 400 && err.message === "EMAIL_EXISTS") {
+                toast.error("Email введен неверно");
+            } else if (err.code === 400 && err.message === "INVALID_PASSWORD") {
+                toast.error("Пароль введен неверно");
+            } else {
+                toast.error(e.message);
+            }
+        }
+    }
+
+    useEffect(() => {
+        if (localStorageService.getAccessToken()) {
+            getUserData();
+        }
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ signUp, stateUserCurrent }}>
+        <AuthContext.Provider value={{ signUp, signIn, stateUserCurrent }}>
             {children}
         </AuthContext.Provider>
     );

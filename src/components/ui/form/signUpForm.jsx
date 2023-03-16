@@ -9,10 +9,13 @@ import CheckBoxField from "./fields/checkBoxField";
 import { useQualitiesContext } from "../../../hooks/useQualities";
 import { useProfessionContext } from "../../../hooks/useProfession";
 import { useAuthContext } from "../../../hooks/useAuth";
+import { useHistory } from "react-router-dom";
 
 const SignUpForm = () => {
+    const history = useHistory();
     const { signUp } = useAuthContext();
     const [data, setData] = useState({
+        name: "",
         email: "",
         password: "",
         profession: "",
@@ -27,7 +30,7 @@ const SignUpForm = () => {
         label: item.name,
         value: item._id
     }));
-    const { email, password, profession, sex, licence } = data;
+    const { name, email, password, profession, sex, licence } = data;
     const [errors, setErrors] = useState({});
     const isValid = Object.keys(errors).length !== 0;
     const radioOptions = [
@@ -36,15 +39,16 @@ const SignUpForm = () => {
         { name: "Other", value: "other" }
     ];
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        signUp({
+        await signUp({
             ...data,
             qualities: data.qualities.map((item) => item.value),
             profession: professions.filter((item) =>
                 item.name.toLowerCase().includes(data.profession.toLowerCase())
             )[0]._id
         });
+        history.push("/");
     };
 
     const handleChangeData = (target) => {
@@ -61,6 +65,13 @@ const SignUpForm = () => {
 
     return (
         <form className="g-3 needs-validation" onSubmit={handleSubmit}>
+            <TextField
+                label="ФИО"
+                name="name"
+                value={name}
+                onChange={handleChangeData}
+                error={errors.name}
+            />
             <TextField
                 label="Почта"
                 name="email"
