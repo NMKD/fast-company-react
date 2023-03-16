@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-escape */
-import { isRequiredField, isEmail, isPassword } from "./validateRules";
+import { isRequiredField, isEmail, isPassword, isName } from "./validateRules";
 
 export const validate = (values, config) => {
     // создаём объект с ошибками
@@ -53,6 +53,9 @@ const validator = (ruleName, value) => {
             } else {
                 return isRequiredField(value);
             }
+        }
+        case "isName": {
+            return isName(value);
         }
         case "isEmail":
             return isEmail(value);

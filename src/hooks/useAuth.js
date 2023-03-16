@@ -1,12 +1,19 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { toast } from "react-toastify";
 import userService from "../service/user.service";
-import { setToken } from "../service/localstorage.service";
+import localStorageService, { setToken } from "../service/localstorage.service";
+import { randomInt } from "../utils/randomInt";
 
 const AuthContext = React.createContext();
-const http = axios.create();
+
+export const httpAuth = axios.create({
+    baseURL: "https://identitytoolkit.googleapis.com/v1/",
+    params: {
+        key: process.env.REACT_APP_FIREBASE_KEY
+    }
+});
 
 export const useAuthContext = () => {
     return useContext(AuthContext);
@@ -25,16 +32,40 @@ const AuthProvider = ({ children }) => {
             toast.error("Ошибка при создании нового пользователя");
         }
     }
-    async function signUp({ email, password, ...rest }) {
-        const url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_KEY}`;
+
+    async function getUserData() {
         try {
-            const { data } = await http.post(url, {
+            const { data } = await userService.getAuth(
+                localStorageService.getUserId()
+            );
+            setStateCurrentUser(data.content);
+        } catch (e) {
+            if (
+                e.response.status === 401 &&
+                e.response.statusText === "Unauthorized"
+            ) {
+                toast.error("Неавторизованный пользователь");
+            }
+            console.error(e.response);
+        }
+    }
+
+    async function signUp({ email, password, ...rest }) {
+        try {
+            const { data } = await httpAuth.post(`accounts:signUp`, {
                 email,
                 password,
                 returnSecureToken: true
             });
             setToken(data);
-            await createUser({ _id: data.localId, email, password, ...rest });
+            await createUser({
+                _id: data.localId,
+                email,
+                password,
+                completedMeetings: randomInt(0, 100),
+                rate: randomInt(1, 5),
+                ...rest
+            });
         } catch (e) {
             console.error(e.response);
             const err = e.response.data.error;
@@ -47,28 +78,36 @@ const AuthProvider = ({ children }) => {
     }
 
     async function signIn({ email, password }) {
-        const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.REACT_APP_FIREBASE_KEY}`;
         try {
-            const { data } = await http.post(url, {
-                email,
-                password,
-                returnSecureToken: true
-            });
+            const { data } = await httpAuth.post(
+                `accounts:signInWithPassword`,
+                {
+                    email,
+                    password,
+                    returnSecureToken: true
+                }
+            );
             setToken(data);
+            getUserData();
             toast.success("Добро пожаловать в сервис");
         } catch (e) {
             console.error(e.response);
             const err = e.response.data.error;
             if (err.code === 400 && err.message === "EMAIL_EXISTS") {
                 toast.error("Email введен неверно");
-            }
-            if (err.code === 400 && err.message === "INVALID_PASSWORD") {
+            } else if (err.code === 400 && err.message === "INVALID_PASSWORD") {
                 toast.error("Пароль введен неверно");
             } else {
                 toast.error(e.message);
             }
         }
     }
+
+    useEffect(() => {
+        if (localStorageService.getAccessToken()) {
+            getUserData();
+        }
+    }, []);
 
     return (
         <AuthContext.Provider value={{ signUp, signIn, stateUserCurrent }}>

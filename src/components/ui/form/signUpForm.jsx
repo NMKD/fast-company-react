@@ -15,6 +15,7 @@ const SignUpForm = () => {
     const history = useHistory();
     const { signUp } = useAuthContext();
     const [data, setData] = useState({
+        name: "",
         email: "",
         password: "",
         profession: "",
@@ -29,7 +30,7 @@ const SignUpForm = () => {
         label: item.name,
         value: item._id
     }));
-    const { email, password, profession, sex, licence } = data;
+    const { name, email, password, profession, sex, licence } = data;
     const [errors, setErrors] = useState({});
     const isValid = Object.keys(errors).length !== 0;
     const radioOptions = [
@@ -64,6 +65,13 @@ const SignUpForm = () => {
 
     return (
         <form className="g-3 needs-validation" onSubmit={handleSubmit}>
+            <TextField
+                label="ФИО"
+                name="name"
+                value={name}
+                onChange={handleChangeData}
+                error={errors.name}
+            />
             <TextField
                 label="Почта"
                 name="email"

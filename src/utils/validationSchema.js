@@ -13,6 +13,10 @@ export const validationSchema = {
     name: {
         isRequired: {
             message: "Имя обязательно для заполнения"
+        },
+        isName: {
+            message:
+                "Имя должно содержать не менее 3 символов, кроме [0-9][!#$%&?]"
         }
     },
     email: {
