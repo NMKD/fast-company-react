@@ -13,6 +13,18 @@ const UserProvider = ({ children }) => {
 
     const getUser = (id) => users.find((item) => item._id === id);
 
+    const toogleBookmark = (id) => {
+        setUsers(
+            users.map((user) => ({
+                ...user,
+                bookmark:
+                    user._id === id
+                        ? (user.bookmark = !user.bookmark)
+                        : user.bookmark
+            }))
+        );
+    };
+
     useEffect(() => {
         async function fetchData() {
             const allUsers = await userService.fetchAll();
@@ -27,7 +39,7 @@ const UserProvider = ({ children }) => {
     }, []);
 
     return (
-        <UserContext.Provider value={{ users, getUser }}>
+        <UserContext.Provider value={{ users, getUser, toogleBookmark }}>
             {users.length > 0 ? (
                 children
             ) : (

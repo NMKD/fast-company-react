@@ -9,9 +9,13 @@ import SearchInput from "../form/fields/searchInput";
 import _ from "lodash";
 import { useUserContext } from "../../../hooks/useUsers";
 import { useProfessionContext } from "../../../hooks/useProfession";
+import {
+    includesToString,
+    toFilterProfession
+} from "../../../utils/getFilterData";
 
 const UsersList = () => {
-    const { users } = useUserContext();
+    const { users, toogleBookmark } = useUserContext();
     const { professions } = useProfessionContext();
 
     // professions/api/filter
@@ -29,15 +33,9 @@ const UsersList = () => {
     const [searchInput, setSearchInput] = useState("");
 
     const filterredUsers = searchInput
-        ? users.filter((user) =>
-              user.name.toLowerCase().includes(searchInput.toLowerCase())
-          )
+        ? includesToString(users, searchInput)
         : selectedProf
-        ? users.filter(
-              (user) =>
-                  JSON.stringify(user.profession) ===
-                  JSON.stringify(selectedProf)
-          )
+        ? toFilterProfession(users, selectedProf)
         : users;
 
     const count = filterredUsers.length;
@@ -77,20 +75,8 @@ const UsersList = () => {
         setSortBy(item);
     };
 
-    const handleDelete = (userId) => console.log(userId);
-    // setUsers((prevState) => prevState.filter((d) => d._id !== userId));
-
     const handleToogleBookMark = (id) => {
-        // setUsers(
-        //     users.map((user) => ({
-        //         ...user,
-        //         bookmark:
-        //             user._id === id
-        //                 ? (user.bookmark = !user.bookmark)
-        //                 : user.bookmark
-        //     }))
-        // );
-        console.log(id);
+        toogleBookmark(id);
     };
 
     useEffect(() => {
@@ -129,7 +115,6 @@ const UsersList = () => {
                         {count > 0 && (
                             <TableList
                                 users={usersCrop}
-                                onDelete={handleDelete}
                                 onToogle={handleToogleBookMark}
                                 onSort={handleSortTable}
                                 currentSort={sortBy}
