@@ -87,7 +87,7 @@ const AuthProvider = ({ children }) => {
             );
             if (data) {
                 setToken(data);
-                getAuthUser(data.idToken);
+                await getAuthUser(data.localId);
                 toast.success("Добро пожаловать в сервис");
             }
         } catch (e) {
@@ -103,14 +103,22 @@ const AuthProvider = ({ children }) => {
         }
     }
 
+    function onSignOut() {
+        setStateCurrentUser(null);
+        localStorageService.removeUserData();
+    }
+
     useEffect(() => {
+        if (stateUserCurrent !== null) return;
         if (localStorageService.getAccessToken()) {
             getAuthUser(localStorageService.getUserId());
         }
     }, []);
 
     return (
-        <AuthContext.Provider value={{ signUp, signIn, stateUserCurrent }}>
+        <AuthContext.Provider
+            value={{ signUp, signIn, stateUserCurrent, onSignOut }}
+        >
             {children}
         </AuthContext.Provider>
     );

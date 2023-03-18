@@ -1,13 +1,19 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { useAuthContext } from "../../../../hooks/useAuth";
 
 const NavProfile = () => {
-    const { stateUserCurrent } = useAuthContext();
+    const history = useHistory();
+    const { stateUserCurrent, onSignOut } = useAuthContext();
     const [isOpen, setOpen] = useState(false);
     const toogleMenu = () => {
         setOpen((prevState) => !prevState);
     };
+    const handleSignOut = () => {
+        onSignOut();
+        history.push("/");
+    };
+
     return (
         <div className="dropdown" onClick={toogleMenu}>
             <div className="btn dropdown-toogle d-flex align-items-center">
@@ -31,9 +37,9 @@ const NavProfile = () => {
                 >
                     Мой профиль
                 </Link>
-                <Link to="logout" className="p-3 dropdown-item">
+                <div className="p-3 dropdown-item" onClick={handleSignOut}>
                     Sign Out
-                </Link>
+                </div>
             </div>
         </div>
     );
