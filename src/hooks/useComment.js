@@ -4,52 +4,62 @@ import { nanoid } from "nanoid";
 import commentService from "../service/coment.service";
 import { toast } from "react-toastify";
 import { useAuthContext } from "./useAuth";
+import { useParams } from "react-router-dom";
 
 const CommentsContext = React.createContext();
 
 export const useCommentsContext = () => useContext(CommentsContext);
 
 const CommentsProvider = ({ children }) => {
+    const { id } = useParams();
     const [stateComments, setStateComments] = useState();
     const [isLoading, setLoading] = useState(true);
     const { stateUserCurrent } = useAuthContext();
+
+    async function getSortedComment(id) {
+        try {
+            const { data } = await commentService.getSorted(id);
+            setStateComments(data.content);
+            setLoading(false);
+        } catch (e) {
+            console.error(e);
+            setLoading(false);
+        }
+    }
+
     const onSubmitForm = async (payload) => {
         try {
-            const { data } = await commentService.create({
+            await commentService.create({
                 ...payload,
-                created_at: new Date(),
+                created_at: Date.now(),
                 _id: nanoid()
             });
+            await getSortedComment(id);
             setLoading(false);
-            setStateComments(data.content);
             toast.success("Сообщение отправлено");
-            console.log(data);
         } catch (e) {
-            console.log(e);
+            console.error(e);
             setLoading(false);
             toast.error("Не удалось отправить сообщение, попробуйте позже");
         }
     };
 
-    const onRemoveComment = (id) => {
-        console.log(id);
+    const onRemoveComment = async (id) => {
         setStateComments(stateComments.filter((item) => item._id !== id));
+        try {
+            await commentService.delete(id);
+            toast.success("Сообщение удалено");
+        } catch (e) {
+            console.error(e);
+            setLoading(false);
+            toast.error("Не удалось удалить сообщение, попробуйте позже");
+        }
     };
 
-    async function getComments(userId) {
-        const allComments = await commentService.get(userId);
-        if (typeof allComments !== "string") {
-            const { data } = allComments;
-            setStateComments(data.content);
-            setLoading(false);
-        } else {
-            setLoading(false);
-            toast.error(`Ошибка: ${allComments}`);
-        }
-    }
-
     useEffect(() => {
-        getComments(stateUserCurrent._id);
+        if (stateUserCurrent !== null) {
+            getSortedComment(id);
+        }
     }, []);
 
     return (

@@ -17,7 +17,9 @@ const NavProfile = () => {
     return (
         <div className="dropdown" onClick={toogleMenu}>
             <div className="btn dropdown-toogle d-flex align-items-center">
-                <div className="me-2">Profile</div>
+                <div className="me-2">
+                    Пользователь: {stateUserCurrent.name}
+                </div>
 
                 <img
                     src={`https://avatars.dicebear.com/api/avataaars/${(

@@ -25,6 +25,10 @@ module.exports = {
         ],
         "multiline-ternary": ["off"],
         // Использование двойных кавычек
-        quotes: ["error", "double", { allowTemplateLiterals: true }]
+        quotes: [
+            "error",
+            "double",
+            { allowTemplateLiterals: true, avoidEscape: true }
+        ]
     }
 };

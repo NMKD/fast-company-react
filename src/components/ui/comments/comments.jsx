@@ -6,7 +6,7 @@ import { orderBy } from "lodash";
 import { useCommentsContext } from "../../../hooks/useComment";
 import { useAuthContext } from "../../../hooks/useAuth";
 
-const Comments = ({ userId }) => {
+const Comments = ({ paramId }) => {
     const { stateUserCurrent } = useAuthContext();
     const { stateComments, onSubmitForm, onRemoveComment } =
         useCommentsContext();
@@ -14,7 +14,7 @@ const Comments = ({ userId }) => {
     const handlSubmit = async (data) => {
         await onSubmitForm({
             ...data,
-            pageId: userId,
+            pageId: paramId,
             userId: stateUserCurrent._id
         });
     };
@@ -30,7 +30,7 @@ const Comments = ({ userId }) => {
             <div className="card mb-2">
                 {" "}
                 <div className="card-body ">
-                    {userId && <AddCommentForm onSubmit={handlSubmit} />}
+                    {paramId && <AddCommentForm onSubmit={handlSubmit} />}
                 </div>
             </div>
             <div className="card mb-3">
@@ -48,7 +48,7 @@ const Comments = ({ userId }) => {
 };
 
 Comments.propTypes = {
-    userId: PropTypes.string.isRequired
+    paramId: PropTypes.string.isRequired
 };
 
 export default Comments;

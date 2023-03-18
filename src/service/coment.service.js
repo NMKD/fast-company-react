@@ -5,14 +5,14 @@ const commentEndPoint = `comment/`;
 const commentService = {
     create: async (payload) =>
         await httpServer.put(`${commentEndPoint}${payload._id}`, payload),
-    get: async (userId) => {
-        try {
-            return await httpServer.get(`${commentEndPoint}${userId}`);
-        } catch (e) {
-            console.error("Expected error: ", e.message);
-            return e.message;
-        }
-    }
+    delete: async (id) => await httpServer.delete(`${commentEndPoint}${id}`),
+    getSorted: async (pageId) =>
+        await httpServer.get(commentEndPoint, {
+            params: {
+                orderBy: JSON.stringify("pageId"),
+                equalTo: JSON.stringify(pageId)
+            }
+        })
 };
 
 export default commentService;
