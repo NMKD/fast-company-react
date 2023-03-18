@@ -15,7 +15,7 @@ axios.defaults.baseURL = configJson.isFarebase.apiEndPointFirebase;
 axios.interceptors.request.use(
     async function (config) {
         // Do something before request is sent
-
+        console.log(config);
         if (configJson?.isFarebase.db) {
             config.url = config.url.match(/.json/gi)
                 ? config.url

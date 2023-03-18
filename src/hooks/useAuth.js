@@ -26,8 +26,10 @@ const AuthProvider = ({ children }) => {
         try {
             const res = await userService.create(data);
             setStateCurrentUser(res.data.content);
+            setLoading(false);
             toast.success("Пользователь успешно создан");
         } catch (e) {
+            setLoading(false);
             console.error(e);
             toast.error("Ошибка при создании нового пользователя");
         }
@@ -35,10 +37,10 @@ const AuthProvider = ({ children }) => {
 
     async function getAuthUser(id) {
         try {
-            if (!id || typeof id === "object" || id === null) return;
+            if (!id) return;
             const { data } = await userService.getAuth(id);
-            setLoading(false);
             setStateCurrentUser(data.content);
+            setLoading(false);
         } catch (e) {
             if (
                 e.response.status === 401 &&
@@ -67,9 +69,7 @@ const AuthProvider = ({ children }) => {
                 rate: randomInt(1, 5),
                 ...rest
             });
-            setLoading(false);
         } catch (e) {
-            setLoading(false);
             console.error(e.response);
             const err = e.response.data.error;
             if (err.code === 400 && err.message === "EMAIL_EXISTS") {
@@ -91,7 +91,6 @@ const AuthProvider = ({ children }) => {
                 }
             );
             if (data) {
-                setLoading(false);
                 setToken(data);
                 getAuthUser(data.idToken);
                 toast.success("Добро пожаловать в сервис");
