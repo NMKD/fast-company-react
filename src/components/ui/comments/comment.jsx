@@ -1,30 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import Avatar from "../users/avatar";
-import api from "../../../api";
 import { formstDate } from "../../../utils/formatDate";
+import { useUserContext } from "../../../hooks/useUsers";
 
 const Comment = ({
     content,
     _id: id,
     userId,
+
     created_at: created,
     onRemove
 }) => {
-    const [user, setUser] = useState();
-    useEffect(() => {
-        console.log("fetch to api in component Comment");
-        async function fetchData() {
-            try {
-                setUser(await api.users.getById(userId));
-            } catch (error) {
-                throw new Error(
-                    "error when mounting the component Comment , check the server requests"
-                );
-            }
-        }
-        fetchData();
-    }, []);
+    const { getUser } = useUserContext();
+    const user = getUser(userId);
+
     return (
         <div className="bg-light card-body  mb-3">
             <div className="row">

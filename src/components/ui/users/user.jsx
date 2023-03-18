@@ -10,6 +10,7 @@ import Comments from "../comments/comments";
 import { useUserContext } from "../../../hooks/useUsers";
 import { useProfessionContext } from "../../../hooks/useProfession";
 import { useQualitiesContext } from "../../../hooks/useQualities";
+import CommentsProvider from "../../../hooks/useComment";
 // import useForm from "../../../hooks/useForm";
 
 const User = ({ userId }) => {
@@ -131,7 +132,9 @@ const User = ({ userId }) => {
                                     />
                                 </div>
                                 <div className="col-12 col-md-8 col-lg-8">
-                                    <Comments {...{ userId }} />
+                                    <CommentsProvider>
+                                        <Comments {...{ userId }} />
+                                    </CommentsProvider>
                                 </div>
                             </>
                         )}
