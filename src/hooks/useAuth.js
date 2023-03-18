@@ -20,7 +20,7 @@ export const useAuthContext = () => {
 };
 
 const AuthProvider = ({ children }) => {
-    const [stateUserCurrent, setStateCurrentUser] = useState();
+    const [stateUserCurrent, setStateCurrentUser] = useState(null);
 
     async function createUser(data) {
         try {
@@ -33,11 +33,9 @@ const AuthProvider = ({ children }) => {
         }
     }
 
-    async function getUserData() {
+    async function getAuthUser(id) {
         try {
-            const { data } = await userService.getAuth(
-                localStorageService.getUserId()
-            );
+            const { data } = await userService.getAuth(id);
             setStateCurrentUser(data.content);
         } catch (e) {
             if (
@@ -87,9 +85,11 @@ const AuthProvider = ({ children }) => {
                     returnSecureToken: true
                 }
             );
-            setToken(data);
-            getUserData();
-            toast.success("Добро пожаловать в сервис");
+            if (data) {
+                setToken(data);
+                getAuthUser(data.idToken);
+                toast.success("Добро пожаловать в сервис");
+            }
         } catch (e) {
             console.error(e.response);
             const err = e.response.data.error;
@@ -105,7 +105,7 @@ const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (localStorageService.getAccessToken()) {
-            getUserData();
+            getAuthUser(localStorageService.getUserId());
         }
     }, []);
 

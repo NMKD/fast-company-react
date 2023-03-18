@@ -1,4 +1,5 @@
 import React from "react";
+import "react-toastify/dist/ReactToastify.css";
 import Users from "./components/pages/users";
 import Main from "./components/pages/main";
 import Login from "./components/pages/login";
@@ -6,7 +7,6 @@ import NavsBar from "./components/layouts/header/navbar/NavsBar";
 import { Route, Switch } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import ProfessionProvider from "./hooks/useProfession";
-import "react-toastify/dist/ReactToastify.css";
 import QualitiesProvider from "./hooks/useQualities";
 import AuthProvider from "./hooks/useAuth";
 
