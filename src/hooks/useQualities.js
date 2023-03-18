@@ -12,6 +12,7 @@ export const useQualitiesContext = () => {
 const QualitiesProvider = ({ children }) => {
     const [stateQualities, setQualities] = useState();
     const [isLoading, setLoading] = useState(true);
+
     const getQualities = (qualities) => {
         const arrayQualities = [];
         qualities.forEach((id) => {

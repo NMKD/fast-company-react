@@ -19,11 +19,11 @@ const GroupList = ({
                                   "list-group-item " +
                                   (selectedItem === item ? "active" : "")
                               }
-                              key={item[valueProperty]}
+                              key={item._id}
                               onClick={() => onFilter(item)}
                               role="button"
                           >
-                              {item[contentProperty]}
+                              {item.name}
                           </li>
                       ))
                     : Object.keys(items).map((item) => (

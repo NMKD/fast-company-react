@@ -20,8 +20,8 @@ export const useAuthContext = () => {
 };
 
 const AuthProvider = ({ children }) => {
-    const [stateUserCurrent, setStateCurrentUser] = useState();
-
+    const [stateUserCurrent, setStateCurrentUser] = useState(null);
+    const [isLoading, setLoading] = useState(true);
     async function createUser(data) {
         try {
             const res = await userService.create(data);
@@ -33,11 +33,11 @@ const AuthProvider = ({ children }) => {
         }
     }
 
-    async function getUserData() {
+    async function getAuthUser(id) {
         try {
-            const { data } = await userService.getAuth(
-                localStorageService.getUserId()
-            );
+            if (!id || typeof id === "object" || id === null) return;
+            const { data } = await userService.getAuth(id);
+            setLoading(false);
             setStateCurrentUser(data.content);
         } catch (e) {
             if (
@@ -46,6 +46,7 @@ const AuthProvider = ({ children }) => {
             ) {
                 toast.error("Неавторизованный пользователь");
             }
+            setLoading(false);
             console.error(e.response);
         }
     }
@@ -66,7 +67,9 @@ const AuthProvider = ({ children }) => {
                 rate: randomInt(1, 5),
                 ...rest
             });
+            setLoading(false);
         } catch (e) {
+            setLoading(false);
             console.error(e.response);
             const err = e.response.data.error;
             if (err.code === 400 && err.message === "EMAIL_EXISTS") {
@@ -87,10 +90,14 @@ const AuthProvider = ({ children }) => {
                     returnSecureToken: true
                 }
             );
-            setToken(data);
-            getUserData();
-            toast.success("Добро пожаловать в сервис");
+            if (data) {
+                setLoading(false);
+                setToken(data);
+                getAuthUser(data.idToken);
+                toast.success("Добро пожаловать в сервис");
+            }
         } catch (e) {
+            setLoading(false);
             console.error(e.response);
             const err = e.response.data.error;
             if (err.code === 400 && err.message === "EMAIL_EXISTS") {
@@ -104,14 +111,15 @@ const AuthProvider = ({ children }) => {
     }
 
     useEffect(() => {
+        if (stateUserCurrent !== null) return;
         if (localStorageService.getAccessToken()) {
-            getUserData();
+            getAuthUser(localStorageService.getUserId());
         }
     }, []);
 
     return (
         <AuthContext.Provider value={{ signUp, signIn, stateUserCurrent }}>
-            {children}
+            {!isLoading && children}
         </AuthContext.Provider>
     );
 };

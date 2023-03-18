@@ -1,3 +1,4 @@
+/* eslint-disable prefer-regex-literals */
 /* eslint-disable indent */
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -14,11 +15,13 @@ axios.defaults.baseURL = configJson.isFarebase.apiEndPointFirebase;
 axios.interceptors.request.use(
     async function (config) {
         // Do something before request is sent
+
         if (configJson?.isFarebase.db) {
-            config.url =
-                (/\/$/gi.test(config.url)
-                    ? config.url.slice(0, -1)
-                    : config.url) + ".json";
+            config.url = config.url.match(/.json/gi)
+                ? config.url
+                : (/\/$/gi.test(config.url)
+                      ? config.url.slice(0, -1)
+                      : config.url) + ".json";
 
             if (refreshToken !== null && expiresDate < Date.now()) {
                 const { data } = await httpAuth.post("token", {
