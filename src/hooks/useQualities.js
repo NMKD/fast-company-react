@@ -42,7 +42,7 @@ const QualitiesProvider = ({ children }) => {
 
     return (
         <QualitiesContext.Provider value={{ stateQualities, getQualities }}>
-            {!isLoading && children}
+            {isLoading ? "Loading" : children}
         </QualitiesContext.Provider>
     );
 };

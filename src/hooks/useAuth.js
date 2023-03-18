@@ -21,15 +21,13 @@ export const useAuthContext = () => {
 
 const AuthProvider = ({ children }) => {
     const [stateUserCurrent, setStateCurrentUser] = useState(null);
-    const [isLoading, setLoading] = useState(true);
+
     async function createUser(data) {
         try {
             const res = await userService.create(data);
             setStateCurrentUser(res.data.content);
-            setLoading(false);
             toast.success("Пользователь успешно создан");
         } catch (e) {
-            setLoading(false);
             console.error(e);
             toast.error("Ошибка при создании нового пользователя");
         }
@@ -37,10 +35,8 @@ const AuthProvider = ({ children }) => {
 
     async function getAuthUser(id) {
         try {
-            if (!id) return;
             const { data } = await userService.getAuth(id);
             setStateCurrentUser(data.content);
-            setLoading(false);
         } catch (e) {
             if (
                 e.response.status === 401 &&
@@ -48,7 +44,6 @@ const AuthProvider = ({ children }) => {
             ) {
                 toast.error("Неавторизованный пользователь");
             }
-            setLoading(false);
             console.error(e.response);
         }
     }
@@ -96,7 +91,6 @@ const AuthProvider = ({ children }) => {
                 toast.success("Добро пожаловать в сервис");
             }
         } catch (e) {
-            setLoading(false);
             console.error(e.response);
             const err = e.response.data.error;
             if (err.code === 400 && err.message === "EMAIL_EXISTS") {
@@ -110,7 +104,6 @@ const AuthProvider = ({ children }) => {
     }
 
     useEffect(() => {
-        if (stateUserCurrent !== null) return;
         if (localStorageService.getAccessToken()) {
             getAuthUser(localStorageService.getUserId());
         }
@@ -118,7 +111,7 @@ const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={{ signUp, signIn, stateUserCurrent }}>
-            {!isLoading && children}
+            {children}
         </AuthContext.Provider>
     );
 };
