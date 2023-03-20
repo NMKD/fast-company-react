@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import SelectField from "./fields/selectField";
 import MultiSelectField from "./fields/multiSelectField";
 import RadioField from "./fields/radioField";
+import { toFilterQualities } from "../../../utils/getFilterData";
 import { validationSchema } from "../../../utils/validationSchema";
 import { validate } from "../../../utils/validate";
 
@@ -16,15 +17,17 @@ const FormUser = ({
     qualities,
     professions
 }) => {
+    const defaultValue = toFilterQualities(qualities, user.qualities);
+
     const [errors, setErrors] = useState({});
     const isValid = Object.keys(errors).length !== 0;
 
-    const { email, name, profession } = user;
-    const data = { email, name, profession };
+    const { email, name } = user;
+    const data = { email, name };
     useEffect(() => {
         const errors = validate(data, validationSchema);
         setErrors(errors);
-    }, [user]);
+    }, []);
 
     return (
         <>
@@ -35,14 +38,14 @@ const FormUser = ({
                         value={user.name}
                         label="Имя"
                         onChange={onChange}
-                        error={errors.name}
+                        // error={errors.name}
                     />
                     <TextField
                         label="Почта"
                         name="email"
                         value={user.email}
                         onChange={onChange}
-                        error={errors.email}
+                        // error={errors.email}
                     />
                     <SelectField
                         label="Выбрать профессию:"
@@ -51,7 +54,7 @@ const FormUser = ({
                         onChange={onChange}
                         name="profession"
                         value={user.profession}
-                        error={errors.profession}
+                        // error={errors.profession}
                     />
                     <RadioField
                         label="Выбрать пол: "
@@ -65,7 +68,7 @@ const FormUser = ({
                         options={qualities}
                         name="qualities"
                         onChange={onChange}
-                        defaultValue={user.qualities}
+                        defaultValue={defaultValue}
                     />
                     <button
                         className="btn btn-success mt-3 mb-3"

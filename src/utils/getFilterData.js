@@ -5,5 +5,13 @@ export function includesToString(data, value) {
 }
 
 export function toFilterProfession(data, value) {
-    return data.filter((user) => user.profession === value._id);
+    return data.filter((item) => item.profession === value._id);
+}
+
+export function toFilterQualities(data, values) {
+    const arr = [];
+    values.forEach((id) =>
+        data.forEach((item) => item.value === id && arr.push(item))
+    );
+    return arr;
 }

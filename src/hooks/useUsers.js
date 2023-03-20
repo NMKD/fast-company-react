@@ -10,7 +10,7 @@ export const useUserContext = () => {
 
 const UserProvider = ({ children }) => {
     const [users, setUsers] = useState([]);
-
+    const [isLoading, setLoading] = useState(true);
     const getUser = (id) => users.find((item) => item._id === id);
 
     const toogleBookmark = (id) => {
@@ -31,7 +31,9 @@ const UserProvider = ({ children }) => {
             if (typeof allUsers !== "string") {
                 const { data } = allUsers;
                 setUsers(data.content);
+                setLoading(false);
             } else {
+                setLoading(false);
                 toast.error(`Ошибка: ${allUsers}`);
             }
         }
@@ -40,11 +42,7 @@ const UserProvider = ({ children }) => {
 
     return (
         <UserContext.Provider value={{ users, getUser, toogleBookmark }}>
-            {users.length > 0 ? (
-                children
-            ) : (
-                <h1>Hello! Waiting for loading...</h1>
-            )}
+            {!isLoading ? children : <h1>Hello! Waiting for loading...</h1>}
         </UserContext.Provider>
     );
 };
