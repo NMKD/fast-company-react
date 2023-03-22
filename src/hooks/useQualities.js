@@ -1,7 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
-import qualityService from "../service/quality.service";
+import { useDispatch, useSelector } from "react-redux";
+import { loadQualitiesList, getQualitiesState } from "../store/qualities";
 
 const QualitiesContext = React.createContext();
 
@@ -10,12 +11,16 @@ export const useQualitiesContext = () => {
 };
 
 const QualitiesProvider = ({ children }) => {
-    const [stateQualities, setQualities] = useState();
-    const [isLoading, setLoading] = useState(true);
+    const {
+        entities: stateQualities,
+        isLoading,
+        error
+    } = useSelector(getQualitiesState());
+    const dispatch = useDispatch();
 
-    const getQualities = (qualities) => {
+    const getQualities = (q) => {
         const arrayQualities = [];
-        qualities.forEach((id) => {
+        q.forEach((id) => {
             stateQualities.forEach((item) => {
                 if (item._id === id) {
                     arrayQualities.push(item);
@@ -26,18 +31,13 @@ const QualitiesProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        async function fetchData() {
-            const allQualities = await qualityService.fetchAll();
-            if (typeof allQualities !== "string") {
-                const { data } = allQualities;
-                setQualities(data.content);
-                setLoading(false);
-            } else {
-                setLoading(false);
-                toast.error(`Ошибка: ${allQualities}`);
-            }
+        if (error) {
+            toast.error(error);
         }
-        fetchData();
+    });
+
+    useEffect(() => {
+        dispatch(loadQualitiesList());
     }, []);
 
     return (
