@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useRouteMatch, useParams, useHistory } from "react-router-dom";
 import PropTypes from "prop-types";
-import api from "../../../api";
 import Edit from "./edit";
 import Card from "./card";
 import QualitieList from "./qualities/qualitieList";
@@ -10,17 +9,23 @@ import Comments from "../comments/comments";
 import { useUserContext } from "../../../hooks/useUsers";
 import { useProfessionContext } from "../../../hooks/useProfession";
 import { useQualitiesContext } from "../../../hooks/useQualities";
-// import useForm from "../../../hooks/useForm";
+import CommentsProvider from "../../../hooks/useComment";
+import { useAuthContext } from "../../../hooks/useAuth";
 
 const User = ({ userId }) => {
     const { edit } = useParams();
     const { getUser } = useUserContext();
+    const { updateCurrentUser, stateUserCurrent } = useAuthContext();
     const { professions } = useProfessionContext();
-    const { qualities } = useQualitiesContext();
+    const { stateQualities } = useQualitiesContext();
+    const qualitiesList = stateQualities.map((item) => ({
+        label: item.name,
+        value: item._id
+    }));
     const user = getUser(userId);
-    const fromUser =
-        user !== null ? { ...user, profession: user.profession.name } : {};
-    const [form, setForm] = useState(fromUser);
+    const [form, setForm] = useState({
+        ...stateUserCurrent
+    });
 
     const history = useHistory();
 
@@ -37,42 +42,15 @@ const User = ({ userId }) => {
         return professions[i];
     };
 
-    const getQualities = (qualities) => {
-        const arrayQualities = [];
-        form.qualities.forEach((item) =>
-            Object.keys(qualities).forEach((opt) => {
-                if (qualities[opt]._id === item.value) {
-                    arrayQualities.push(qualities[opt]);
-                }
-            })
-        );
-        return arrayQualities;
-    };
-
-    const verificationProf = (name) => {
-        if (typeof name === "object") {
-            return name;
-        }
-        return getProfession(name);
-    };
-
-    const verificationQual = (qualities) => {
-        if (user.qualities.filter((item) => item._id)) {
-            return user.qualities;
-        }
-        return getQualities(qualities);
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        api.users
-            .update(user._id, {
-                ...form,
-                profession: verificationProf(user.profession),
-                qualities: verificationQual(qualities)
-            })
-            .then((data) => setForm(data))
-            .then(() => history.push(`/users/${user._id}`));
+        await updateCurrentUser({
+            ...form,
+            qualities:
+                form.qualities.map((item) => item.value) || form.qualities,
+            profession: getProfession(user.profession) || form.profession
+        });
+        history.push(`/users/${user._id}`);
     };
 
     const handleChange = (target) => {
@@ -106,8 +84,8 @@ const User = ({ userId }) => {
                                 {...{
                                     radioOptions,
                                     professions,
-                                    qualities,
-                                    user: fromUser
+                                    qualities: qualitiesList,
+                                    user: form
                                 }}
                             />
                         ) : (
@@ -120,18 +98,22 @@ const User = ({ userId }) => {
                                                 <span>Qualities</span>
                                             </h6>
                                             <QualitieList
-                                                qualities={fromUser.qualities}
+                                                qualities={
+                                                    stateUserCurrent.qualities
+                                                }
                                             />
                                         </div>
                                     </div>
                                     <CompletedMeetings
                                         completedMeetings={
-                                            fromUser.completedMeetings
+                                            stateUserCurrent.completedMeetings
                                         }
                                     />
                                 </div>
                                 <div className="col-12 col-md-8 col-lg-8">
-                                    <Comments {...{ userId }} />
+                                    <CommentsProvider>
+                                        <Comments {...{ paramId: userId }} />
+                                    </CommentsProvider>
                                 </div>
                             </>
                         )}

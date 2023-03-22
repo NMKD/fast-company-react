@@ -2,17 +2,21 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import Avatar from "./avatar";
+import { useAuthContext } from "../../../hooks/useAuth";
 
 const Card = ({ user, pathName }) => {
+    const { stateUserCurrent } = useAuthContext();
     return (
         <>
             <div className="card mb-3">
                 <div className="card-body">
-                    <button className="position-absolute top-0 end-0 btn btn-light btn-sm">
-                        <Link to={`${pathName}/edit`}>
-                            <i className="bi bi-gear"></i>
-                        </Link>
-                    </button>
+                    {stateUserCurrent._id === user._id && (
+                        <button className="position-absolute top-0 end-0 btn btn-light btn-sm">
+                            <Link to={`${pathName}/edit`}>
+                                <i className="bi bi-gear"></i>
+                            </Link>
+                        </button>
+                    )}
                     <div className="d-flex flex-column align-items-center text-center position-relative">
                         <Avatar />
                         <div className="mt-3">

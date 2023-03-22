@@ -21,6 +21,7 @@ export const useAuthContext = () => {
 
 const AuthProvider = ({ children }) => {
     const [stateUserCurrent, setStateCurrentUser] = useState(null);
+    const [isLoading, setLoading] = useState(true);
 
     async function createUser(data) {
         try {
@@ -87,7 +88,7 @@ const AuthProvider = ({ children }) => {
             );
             if (data) {
                 setToken(data);
-                getAuthUser(data.idToken);
+                await getAuthUser(data.localId);
                 toast.success("Добро пожаловать в сервис");
             }
         } catch (e) {
@@ -103,15 +104,40 @@ const AuthProvider = ({ children }) => {
         }
     }
 
+    async function updateCurrentUser(payload) {
+        try {
+            const { data } = await userService.update(payload);
+            setStateCurrentUser(data.content);
+            toast.success("Данные успешно обновлены");
+        } catch (e) {
+            console.error(e.response);
+            toast.error("Ошибка при отправлении формы, попробуйте позже");
+        }
+    }
+
+    function onSignOut() {
+        setStateCurrentUser(null);
+        localStorageService.removeUserData();
+    }
+
     useEffect(() => {
         if (localStorageService.getAccessToken()) {
             getAuthUser(localStorageService.getUserId());
         }
+        setLoading(false);
     }, []);
 
     return (
-        <AuthContext.Provider value={{ signUp, signIn, stateUserCurrent }}>
-            {children}
+        <AuthContext.Provider
+            value={{
+                signUp,
+                signIn,
+                stateUserCurrent,
+                onSignOut,
+                updateCurrentUser
+            }}
+        >
+            {isLoading ? "Loading.. " : children}
         </AuthContext.Provider>
     );
 };

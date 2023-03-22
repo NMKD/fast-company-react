@@ -1,62 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import PropTypes from "prop-types";
-import api from "../../../api";
 import AddCommentForm from "./addCommentForm";
 import CommentList from "./commentList";
 import { orderBy } from "lodash";
+import { useCommentsContext } from "../../../hooks/useComment";
+import { useAuthContext } from "../../../hooks/useAuth";
 
-const Comments = ({ userId }) => {
-    const [comments, setComments] = useState();
-    const [users, setUsers] = useState([]);
-
-    const getUserId = (name) => {
-        const user = users.find(
-            (item) => item.name.toLowerCase() === name.toLowerCase()
-        );
-        return user._id;
-    };
+const Comments = ({ paramId }) => {
+    const { stateUserCurrent } = useAuthContext();
+    const { stateComments, onSubmitForm, onRemoveComment } =
+        useCommentsContext();
 
     const handlSubmit = async (data) => {
-        await api.comments.add({
-            pageId: userId,
-            userId: getUserId(data.name),
-            content: data.content,
-            created_at: JSON.stringify(new Date())
+        await onSubmitForm({
+            ...data,
+            pageId: paramId,
+            userId: stateUserCurrent._id
         });
-        setComments(await api.comments.fetchCommentsForUser(userId));
     };
 
     const handleRemoveComment = (id) => {
-        api.comments
-            .remove(id)
-            .then((id) => setComments(comments.filter((i) => i._id !== id)));
+        onRemoveComment(id);
     };
 
-    useEffect(() => {
-        console.log("fetch to api/users/comments");
-        async function fetchData() {
-            try {
-                setComments(await api.comments.fetchCommentsForUser(userId));
-                setUsers(await api.users.fetchAll());
-            } catch (error) {
-                throw new Error(
-                    "error when mounting the component Comments in ui/users/user, check the server requests to api/users/comments"
-                );
-            }
-        }
-        fetchData();
-    }, []);
-
-    const sortedComments = orderBy(comments, ["created-by"], ["desc"]);
+    const sortedComments = orderBy(stateComments, ["created-by"], ["desc"]);
 
     return (
         <>
             <div className="card mb-2">
                 {" "}
                 <div className="card-body ">
-                    {users && (
-                        <AddCommentForm onSubmit={handlSubmit} users={users} />
-                    )}
+                    {paramId && <AddCommentForm onSubmit={handlSubmit} />}
                 </div>
             </div>
             <div className="card mb-3">
@@ -74,7 +48,7 @@ const Comments = ({ userId }) => {
 };
 
 Comments.propTypes = {
-    userId: PropTypes.string.isRequired
+    paramId: PropTypes.string.isRequired
 };
 
 export default Comments;

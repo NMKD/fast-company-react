@@ -6,7 +6,7 @@ import QualitieList from "../users/qualities/qualitieList";
 import Profession from "../../ui/users/professions/profession";
 import { Link } from "react-router-dom";
 
-const TableList = ({ users, onDelete, onToogle, currentSort, onSort }) => {
+const TableList = ({ users, onToogle, currentSort, onSort }) => {
     const columns = {
         name: {
             path: "name",
@@ -38,16 +38,6 @@ const TableList = ({ users, onDelete, onToogle, currentSort, onSort }) => {
                     id={user._id}
                 />
             )
-        },
-        delete: {
-            component: (user) => (
-                <button
-                    className="btn btn-danger"
-                    onClick={() => onDelete(user._id)}
-                >
-                    delete
-                </button>
-            )
         }
     };
     return (
@@ -59,10 +49,9 @@ const TableList = ({ users, onDelete, onToogle, currentSort, onSort }) => {
 
 TableList.propTypes = {
     users: PropTypes.array.isRequired,
-    onDelete: PropTypes.func.isRequired,
-    onToogle: PropTypes.func.isRequired,
-    currentSort: PropTypes.object.isRequired,
-    onSort: PropTypes.func.isRequired
+    onToogle: PropTypes.func,
+    currentSort: PropTypes.object,
+    onSort: PropTypes.func
 };
 
 export default TableList;
